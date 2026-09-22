@@ -198,11 +198,12 @@ body[data-bg="dark"] .controls{background:rgba(22,26,31,.88);border-color:rgba(2
 .dual-clock.done .dc-time,.dual-clock.done .dc-state{color:var(--stop-ink);font-weight:700;}
 .free-tip{text-align:center;font-size:13px;color:var(--ink-2);margin-top:10px;line-height:1.6;}
 /* ===== 攻辩双轮：轮次切换条（双钟复用 free-clock） ===== */
-.gb-round-tabs{display:flex;gap:10px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;}
+.gb-round-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+@media(max-width:600px){ .gb-round-tabs{grid-template-columns:repeat(2,1fr);} }
 .gb-tab{
-  flex:1 1 140px;max-width:260px;min-height:44px;padding:8px 16px;border-radius:12px;
+  width:100%;box-sizing:border-box;min-height:44px;padding:8px 10px;border-radius:12px;
   background:var(--panel);border:1px solid var(--line);
-  font-size:14.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  font-size:14px;font-weight:600;color:var(--ink-2);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .15s;
 }
 .gb-tab .tab-sub{font-size:11px;font-weight:400;color:#9A9DA5;}
@@ -504,7 +505,6 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
           <span class="side-tag" id="segSide"><img class="logo logo-sm" id="segSideLogo" alt=""><span id="segSideText">正方</span></span>
           <span class="seg-name" id="segName">正方一辩 · 开篇立论</span>
           <span class="lamp-badge" id="lampBadge"><span class="dot"></span><span id="lampText">正常</span></span>
-          <button class="rule-btn" id="ruleBtn" type="button" title="查看当前环节规则">！</button>
         </div>
         <div class="seg-progress" id="segProgress">第 1 / 2 段</div>
         <div class="ring-wrap">
@@ -514,8 +514,8 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
           </svg>
           <div class="time-num"><span class="big" id="timeBig">3:00</span><span class="cap">剩余时间</span></div>
         </div>
-        <div class="rule-hint" id="ruleHint"></div>
       </div>
+      <div class="free-rule-row"><button class="rule-btn" id="ruleBtn" type="button" title="查看当前环节规则">！</button><span style="font-size:12.5px;color:var(--ink-2);">规则</span></div>
       <div class="controls">
         <button class="ctl" id="prevBtn" type="button">上一段</button>
         <button class="ctl primary" id="toggleBtn" type="button">
@@ -549,8 +549,7 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
           </span>
         </button>
       </div>
-      <div class="free-rule-row"><button class="rule-btn" id="freeRuleBtn" type="button" title="查看当前环节规则">！</button><span style="font-size:12.5px;color:var(--ink-2);">环节规则</span></div>
-      <div class="free-tip">规则：从反方开始，双方各累计 5 分钟；点对方表盘即切换发言方，走表方高亮、另一方冻结；某方到 5 分钟亮红灯并停止该方。</div>
+      <div class="free-rule-row"><button class="rule-btn" id="freeRuleBtn" type="button" title="查看当前环节规则">！</button><span style="font-size:12.5px;color:var(--ink-2);">规则</span></div>
       <div class="controls">
         <button class="ctl" id="freePrevBtn" type="button">上一环节</button>
         <button class="ctl primary" id="freeToggleBtn" type="button">
@@ -568,8 +567,10 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
     <!-- ===== 攻辩双轮视图（当前轮双大表，同自由辩论） ===== -->
     <section id="gbView" hidden>
       <div class="gb-round-tabs">
-        <button class="gb-tab active" id="gbTab0" type="button">第一轮 · 二辩<span class="tab-sub">正方二辩提问 / 反方应对</span></button>
-        <button class="gb-tab locked" id="gbTab1" type="button">第二轮 · 三辩<span class="tab-sub">第一轮走完解锁</span></button>
+        <button class="gb-tab active" id="gbTab0" type="button">第一轮 · 正二提问<span class="tab-sub">正方二辩提问 / 反方应对</span></button>
+        <button class="gb-tab" id="gbTab1" type="button">第一轮 · 反二提问<span class="tab-sub">反方二辩提问 / 正方应对</span></button>
+        <button class="gb-tab" id="gbTab2" type="button">第二轮 · 正三提问<span class="tab-sub">正方三辩提问 / 反方应对</span></button>
+        <button class="gb-tab" id="gbTab3" type="button">第二轮 · 反三提问<span class="tab-sub">反方三辩提问 / 正方应对</span></button>
       </div>
       <div class="dual-grid">
         <button class="dual-clock pro" id="gbProClock" type="button">
@@ -587,8 +588,7 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
           </span>
         </button>
       </div>
-      <div class="free-rule-row"><button class="rule-btn" id="gbRuleBtn" type="button" title="查看当前环节规则">！</button><span style="font-size:12.5px;color:var(--ink-2);">环节规则</span></div>
-      <div class="free-tip">分开计时、谁发言走谁的表：点表盘或「切换发言方」交接（第一轮 正问→反答→正问→反答）；每轮攻方 1:00、辩方 1:30，剩余 15 秒亮黄灯、到点亮红灯；第一轮双方走完自动解锁第二轮。</div>
+      <div class="free-rule-row"><button class="rule-btn" id="gbRuleBtn" type="button" title="查看当前环节规则">！</button><span style="font-size:12.5px;color:var(--ink-2);">规则</span></div>
       <div class="controls">
         <button class="ctl" id="gbPrevBtn" type="button">上一环节</button>
         <button class="ctl primary" id="gbToggleBtn" type="button">
@@ -823,7 +823,7 @@ body.projector .modal-mask,body.projector #guideMask,body.projector #guideBubble
   <div class="modal" role="dialog" aria-label="关于">
     <div class="modal-head"><h2>关于</h2><button class="ghost-btn modal-close" type="button">关闭</button></div>
     <div class="modal-body">
-      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器（三人制 · 网页版）<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;">v1.2.5 · 单文件 · 零依赖 · 可离线</span></p>
+      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器（三人制 · 网页版）<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;">v1.2.6 · 单文件 · 零依赖 · 可离线</span></p>
       <p class="about-tip">一个面向高校研究生辩论赛的计时工具：主控 + 投影副屏一体，规则依据湖南省高校研究生辩论赛通知。如果你觉得好用，欢迎：</p>
       <div class="about-links">
         <a class="about-link" href="https://github.com/zxq360/Debate-timer" target="_blank" rel="noopener">
@@ -973,10 +973,16 @@ function buildStages(s){
       { label:'反方一辩 · 开篇立论', side:'con', dur:s.lilun, warn:s.lilunWarn, rule:'剩余 '+fmtSec(s.lilunWarn)+' 亮黄灯提醒，时间到亮红灯停止。' }
     ]},
     { id:'gongbian', name:'攻辩', mode:'gbdual', rounds:[
-      { name:'第一轮 · 二辩', first:'pro',
+      { name:'第一轮 · 正二提问', first:'pro',
         pro:{ label:'正方二辩提问', role:'攻', dur:s.gong },
         con:{ label:'反方应对', role:'辩', dur:s.bian } },
-      { name:'第二轮 · 三辩', first:'con',
+      { name:'第一轮 · 反二提问', first:'con',
+        con:{ label:'反方二辩提问', role:'攻', dur:s.gong },
+        pro:{ label:'正方应对', role:'辩', dur:s.bian } },
+      { name:'第二轮 · 正三提问', first:'pro',
+        pro:{ label:'正方三辩提问', role:'攻', dur:s.gong },
+        con:{ label:'反方应对', role:'辩', dur:s.bian } },
+      { name:'第二轮 · 反三提问', first:'con',
         con:{ label:'反方三辩提问', role:'攻', dur:s.gong },
         pro:{ label:'正方应对', role:'辩', dur:s.bian } }
     ]},
@@ -1001,7 +1007,7 @@ var state = {
   warnFired:false, stopFired:false,
   autoTimer:null,
   free:{ pro:0, con:0, active:null, running:false, endAt:0, proDone:false, conDone:false, fired:{pro:false,con:false} },
-  gb:{ active:0, unlocked:[true,false], r:[null,null] }
+  gb:{ active:0, r:[null,null,null,null] }
 };
 
 /* ===================== 声音 / 震动 ===================== */
@@ -1325,7 +1331,7 @@ function resetGb(){
   clearAutoTimer();
   var st=curStage();
   if(!st || st.mode!=='gbdual'){ return; }
-  state.gb={ active:0, unlocked:[true,false], r:[gbMakeRound(0),gbMakeRound(1)] };
+  state.gb={ active:0, r:[gbMakeRound(0),gbMakeRound(1),gbMakeRound(2),gbMakeRound(3)] };
   renderAll();
 }
 function gcur(){ return state.gb.r[state.gb.active]; }
@@ -1375,12 +1381,13 @@ function onGbSideDone(side){
   }else{
     rd.running=false; rd.talk=null; releaseWake();
     if(rd.proDone && rd.conDone){
-      if(g.active===0){
-        g.unlocked[1]=true;
-        toast('第一轮结束，已解锁第二轮（三辩）','stop');
-        if(settings.autoNext){ clearAutoTimer(); state.autoTimer=setTimeout(function(){ gbSwitchRound(1); },2500); }
+      var gbTotal=curStage().rounds.length;
+      if(g.active<gbTotal-1){
+        var gbNx=g.active+1;
+        toast('第'+(g.active+1)+'次攻辩结束','stop');
+        if(settings.autoNext){ clearAutoTimer(); state.autoTimer=setTimeout(function(){ gbSwitchRound(gbNx); },2500); }
       }else{
-        toast('攻辩两轮全部结束','stop');
+        toast('攻辩四次全部结束','stop');
       }
     }
   }
@@ -1388,9 +1395,8 @@ function onGbSideDone(side){
 }
 // 顶部切换轮次（第二轮需第一轮双方走完解锁）
 function gbSwitchRound(r){
-  var g=state.gb;
-  if(r===g.active || r<0 || r>1){ return; }
-  if(!g.unlocked[r]){ toast('请先走完第一轮'); return; }
+  var g=state.gb, total=curStage().rounds.length;
+  if(r===g.active || r<0 || r>=total){ return; }
   var rd=g.r[g.active];
   if(rd.running && rd.talk){ rd[rd.talk]=Math.max(0,rd.endAt-Date.now()); rd.running=false; }
   g.active=r;
@@ -1399,20 +1405,15 @@ function gbSwitchRound(r){
 // 控制条：下一轮 / 下一环节
 function gbNext(){
   clearAutoTimer();
-  var g=state.gb, rd=g.r[g.active];
-  if(g.active===0){
-    if(!(rd.proDone&&rd.conDone)){ toast('第一轮双方时间走完后才能进入第二轮'); return; }
-    gbSwitchRound(1); return;
-  }
-  if(rd.proDone&&rd.conDone){
-    if(state.sIdx+1<stages.length){ enterStage(state.sIdx+1); }
-    else { toast('攻辩已全部结束'); }
-  }else{ toast('第二轮双方时间走完后进入下一环节'); }
+  var g=state.gb, total=curStage().rounds.length;
+  if(g.active<total-1){ gbSwitchRound(g.active+1); return; }
+  if(state.sIdx+1<stages.length){ enterStage(state.sIdx+1); }
+  else { toast('攻辩已全部结束'); }
 }
 function gbPrev(){
   clearAutoTimer();
   var g=state.gb;
-  if(g.active===1){ gbSwitchRound(0); return; }
+  if(g.active>0){ gbSwitchRound(g.active-1); return; }
   if(state.sIdx>0){ enterStage(state.sIdx-1); }
   else { toast('已是第一环节'); }
 }
@@ -1435,7 +1436,7 @@ function gbResetRound(){
   }
   g.r[a]=gbMakeRound(a);
   renderGb(); renderGbControls();
-  toast((a===0?'第一轮':'第二轮')+'已重置');
+  toast('第'+(a+1)+'次已重置');
 }
 
 /* ===================== 渲染 ===================== */
@@ -1444,7 +1445,7 @@ function renderNav(){
   var html='';
   for(var i=0;i<stages.length;i++){
     var st=stages[i];
-    var sub = st.mode==='single' ? (st.segs.length)+' 段' : (st.mode==='gbdual' ? '两轮 · 分开计时' : '双方各 '+fmtSec(settings.ziyou));
+    var sub = st.mode==='single' ? (st.segs.length)+' 段' : (st.mode==='gbdual' ? (st.rounds.length+' 次 · 分开计时') : '双方各 '+fmtSec(settings.ziyou));
     html+='<button type="button" class="stage-tab'+(i===state.sIdx?' active':'')+'" data-s="'+i+'">'
         + '<span>'+st.name+'</span><span class="tab-sub">'+sub+'</span></button>';
   }
@@ -1478,7 +1479,6 @@ function renderSingle(){
   setLogoImg('segSideLogo', seg.side==='pro'?settings.proLogo:settings.conLogo);
   $('segName').textContent=seg.label;
   $('segProgress').textContent='第 '+(state.gIdx+1)+' / '+st.segs.length+' 段 · '+st.name;
-  $('ruleHint').innerHTML='本环节：<b>'+fmtSec(seg.dur)+'</b>。'+seg.rule;
   // 灯态
   var card=$('dialCard');
   card.className='dial-card'+(state.stopFired?' state-stop':(state.warnFired?' state-warn':''));
@@ -1533,11 +1533,12 @@ function renderGb(){
   if(!st || st.mode!=='gbdual'){ return; }
   var g=state.gb;
   // 轮次切换条
-  for(var r=0;r<2;r++){
+  var roundTotal=st.rounds.length;
+  for(var r=0;r<roundTotal;r++){
     var tab=$('gbTab'+r);
-    var cls='gb-tab'+(g.active===r?' active':'')+(g.unlocked[r]?'':' locked');
-    tab.className=cls;
-    tab.disabled=!g.unlocked[r];
+    if(!tab){ continue; }
+    tab.className='gb-tab'+(g.active===r?' active':'');
+    tab.disabled=false;
   }
   var cfg=st.rounds[g.active], rd=g.r[g.active];
   var sides=[['pro','Pro'],['con','Con']];
@@ -1565,8 +1566,9 @@ function renderGbControls(){
     ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
     : '<path d="M8 5v14l11-7z"/>';
   $('gbToggleBtn').classList.toggle('running',rd.running);
-  $('gbPrevBtn').textContent = g.active===1?'上一轮':'上一环节';
-  $('gbNextBtn').textContent = g.active===0?'下一轮':'下一环节';
+  var gbt=curStage().rounds.length;
+  $('gbPrevBtn').textContent = g.active===0?'上一环节':'上一次';
+  $('gbNextBtn').textContent = g.active===gbt-1?'下一环节':'下一次';
 }
 function renderControls(){
   var st=curStage();
@@ -1779,6 +1781,8 @@ $('gbProClock').addEventListener('click',function(){ gbSwitchTo('pro'); });
 $('gbConClock').addEventListener('click',function(){ gbSwitchTo('con'); });
 $('gbTab0').addEventListener('click',function(){ gbSwitchRound(0); });
 $('gbTab1').addEventListener('click',function(){ gbSwitchRound(1); });
+$('gbTab2').addEventListener('click',function(){ gbSwitchRound(2); });
+$('gbTab3').addEventListener('click',function(){ gbSwitchRound(3); });
 $('gbRuleBtn').addEventListener('click',showRule);
 
 $('settingsBtn').addEventListener('click',openDrawer);
@@ -1953,19 +1957,19 @@ var HELP_TEXT={
     '这里是普通环节计时页（开篇立论 / 攻辩小结 / 结辩陈词）。',
     '顶栏可切换环节；中间为当前段的倒计时表盘，下方为操作按钮。',
     '点「开始」开始计时：剩余黄灯提醒、到时红灯停止；「上一段 / 下一段」按正方反方顺序切换发言，±10 秒可微调剩余时间。',
-    '表盘上的「！」查看当前环节规则；右上角「帮助 / 关于 / 设置」为全局入口。'
+    '「！规则」查看当前环节规则原文；右上角「帮助 / 关于 / 设置」为全局入口。'
   ],
   gb:[
-    '这里是攻辩双轮页：第一轮（二辩）、第二轮（三辩），每轮都是攻 / 辩双方两个累计钟，和自由辩论一样谁发言走谁的表。',
-    '第一轮正方二辩先提问、反方应对（反方可自行确定二辩或三辩，正问→反答→正问→反答）；第一轮双方时间走完，第二轮解锁，由反方三辩先提问、正方应对（正方剩下一名辩手）。',
-    '点表盘或「切换发言方」交接：走表方高亮、另一方冻结；每轮攻方 1:00、辩方 1:30 分开计时，剩余 15 秒亮黄灯，一方到点锁定后自动切换另一方继续，双方时间都走完本轮才结束。',
-    '顶部可在两轮间切换；±10 秒微调当前发言方，「重置本轮」清空当前轮；「！」查看攻辩环节原文规则。'
+    '这里是攻辩页，共两轮四次：正二提问、反二提问、正三提问、反三提问，按正→反→正→反进行；每次都是攻 / 辩双方两个钟，谁发言走谁的表。',
+    '每次由提问方（攻）先发言 1:00，被提问方（辩）应对 1:30；点表盘或「切换发言方」交接，走表方高亮、另一方冻结。',
+    '一方到点锁定后自动切换另一方继续，双方时间都走完本次结束；可随时点顶部标签切换到任意一次，不强制顺序。',
+    '±10 秒微调当前发言方，「重置本轮」清空当前一次；「！规则」查看攻辩环节 PDF 原文。'
   ],
   free:[
     '这里是自由辩论页：双方各累计 5 分钟，从反方开始。',
     '点对方表盘即可切换发言方（走表方高亮、另一方冻结），也可用「切换发言方」按钮。',
     '某方到 5 分钟锁定并自动由另一方继续，双方都到点本环节结束；「重置本环节」重新开始。',
-    '「！」可查看自由辩论规则；右上角「帮助 / 关于 / 设置」为全局入口。'
+    '「！规则」查看自由辩论规则原文；右上角「帮助 / 关于 / 设置」为全局入口。'
   ],
   drawer:[
     '在这里配置比赛参数：',
@@ -2011,7 +2015,7 @@ var GUIDE_STEPS=[
   { id:'minusBtn',     title:'±10 秒微调',   text:'比赛途中可 ±10 秒微调剩余时间，「重置本段」回到本段初始时长（运行中先暂停，再点一次确认重置）。' },
   { id:'settingsBtn',  title:'设置',          text:'在这里修改队名、校徽、环节时长、背景字体颜色与环节规则；保存后投影副屏自动同步。' },
   { id:'projectorBtn', title:'投影副屏',      text:'点这里弹出投影窗口，拖到投影仪并点击画面进入全屏；主控的一切操作实时同步到副屏。' },
-  { id:'helpBtn',      title:'帮助 / 规则 / 关于', text:'右上角「帮助」查看当前页面说明，「关于」查看作者与开源地址；表盘上的「！」查看当前环节规则。' }
+  { id:'helpBtn',      title:'帮助 / 规则 / 关于', text:'右上角「帮助」查看当前页面说明，「关于」查看作者与开源地址；「！规则」查看当前环节原文规则。' }
 ];
 var guideIdx=0, guideReturnS=null, pendingGuide=false;
 function startGuide(){
