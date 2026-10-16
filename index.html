@@ -856,9 +856,6 @@ body.projector[data-bg="redplain"] #projectorView::before{display:none;}
   background:linear-gradient(90deg,rgba(240,205,110,.95),rgba(255,228,150,.95));
   border-radius:999px;transition:width .2s linear;box-shadow:0 0 8px rgba(240,205,110,.4);}
 body.pj-warn .pj-bar{background:rgba(0,0,0,.5);}
-min-height:0;}
-.pj-speaker{font-size:clamp(24px,4.2vh,50px);font-weight:700;letter-spacing:.04em;text-align:center;}
-.pj-speaker.pro{color:#7FB0FF;} .pj-speaker.con{color:#C3A6F0;}
 .pj-time{
   font-family:var(--digit-stack,ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace);
   /* v2.9.1：数字公式与双表盘同构（clamp + vh 系数），仅基数不同 */
@@ -873,7 +870,9 @@ min-height:0;}
   transform:skewX(var(--pj-digit-skew,0deg)) scale(var(--fit,1));
   transform-origin:50% 50%;
 }
-body[data-pj-digit-skew="1"] .pj-time{margin-left:calc(-0.09 * clamp(70px,29vh,240px) * var(--pj-s-time,1)));}
+/* 斜切补偿（2026-10 修复）：原声明末端多一个右括号，被浏览器整条静默丢弃，
+   斜体数字实测视觉偏右 7.81px；去括号并按像素级实测把系数由 0.09 校准为 0.07。*/
+body[data-pj-digit-skew="1"] .pj-time{margin-left:calc(-0.07 * clamp(70px,29vh,240px) * var(--pj-s-time,1));}
 .pj-status{font-size:calc(clamp(20px,3.2vh,40px) * var(--pj-s-status,1));font-weight:700;color:#9AA4AE;min-height:1.3em;letter-spacing:.1em;}
 /* 投影灯态：整屏换色 */
 /* v2.9.2：单表盘黄灯只做局部提示 —— 表盘环与进度条变橙、状态文字变黄。
@@ -1739,7 +1738,7 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
   <div class="modal" role="dialog" aria-label="关于">
     <div class="modal-head"><h2>关于</h2><button class="ghost-btn modal-close" type="button">关闭</button></div>
     <div class="modal-body">
-      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;" id="aboutVer">v2.9.4 · 单文件 · 零依赖 · 可离线</span></p>
+      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;" id="aboutVer">v2.9.6 · 单文件 · 零依赖 · 可离线</span></p>
       <p class="about-tip">面向高校辩论赛的赛场计时工具，采用三人制赛制，支持主控屏与投影副屏双屏联动。内置环节结构与时长为通用预设，请依据所在赛事的实际规则自行核对调整。</p>
       <div class="about-links">
         <a class="about-link" href="https://github.com/zxq360/Debate-timer" target="_blank" rel="noopener">
@@ -1933,8 +1932,7 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
 'use strict';
 
 /* ===== 应用版本号（单一真相源） ===== */
-var APP_VER = '2.9.4';
-var APP_VER_DATE = '2026-10-11';
+var APP_VER = '2.9.6';
 
 /* ===== v2.2.0 新增：内置更新日志数据 =====
  * 数据来源：项目内 24 份 README_x.y.z.md 归档说明 + README.md 版本记录
@@ -1942,6 +1940,16 @@ var APP_VER_DATE = '2026-10-11';
  * 结构：{ v: 版本号, d: 发布日期, tag: 大版本标签, items: [[分类, 要点], ...] }
  */
 var CHANGELOG = [
+{ v:'2.9.6', d:'2026-10-16', tag:'后台计时修复', items:[
+  ['修复','主控切到后台后主控与投影的倒计时都停滞、切回才跳变：状态推进原挂在 requestAnimationFrame 上，页面转入后台时浏览器暂停 rAF 导致整条链路冻结。现拆分为 tick（状态推进与判定）与 paint（纯渲染），前者由后台节拍器（Worker 定时器，不受后台节流）每 250ms 驱动'],
+  ['修复','同一根因下后台期间黄灯 / 红灯铃声与到点自动交接不再触发的问题（判定移入节拍器后照常生效）'],
+  ['优化','投影副屏新增本地走表：按快照毫秒基准在本地连续推算显示，主控推送变稀时倒计时仍连续；单表盘快照补 remainMs / dur 字段']
+]},
+{ v:'2.9.5', d:'2026-10-16', tag:'修复与清理', items:[
+  ['修复','投影单表盘斜体数字视觉偏右约 8px：斜切补偿声明末端多一个右括号、被浏览器整条静默丢弃，修复声明并按像素级实测把系数由 0.09 校准为 0.07'],
+  ['优化','集中清理历史遗留：一处游离 CSS 碎片与两条无引用的旧规则、四个无调用的旧函数、一处无引用的版本日期变量、两处文件内乱码字符'],
+  ['优化','静态校验新增 CSS 括号平衡检查；测试补齐主控「上一段 / 下一段」、点反方表盘与投影掉线等待层三类盲区']
+]},
 { v:'2.9.4', d:'2026-10-13', tag:'修复自定义背景', items:[
   ['修复','自定义背景点了「应用」毫无反应：预设背景用的是简写 background（含 background-image），与自定义背景的规则特异性相同且排在后面，把自定义背景整个盖住了。现把自定义背景的规则移到全部预设背景之后并加 !important'],
   ['修复','应用自定义背景时把预设项 data-bg 置为 custom（不匹配任何预设），从选择器层面与预设背景互斥；取消自定义时自动恢复原预设']
@@ -1965,7 +1973,7 @@ var CHANGELOG = [
 { v:'2.9.0', d:'2026-10-13', tag:'投影尺寸可调', items:[
   ['优化','设置 → 布局与投影新增两组独立的尺寸滑块：单表盘组（数字 / 表盘 / 顶部环节名 / 状态文字 / 队名）与双表盘组（数字 / 表盘 / 状态文字 / 两表盘间距 / 顶部环节名），两组互不影响'],
   ['优化','投影副屏三个视图（普通环节 / 自由辩论 / 攻辩）页头统一：左上角显示环节名、右上角显示轮次或段号，中间为正方牌 · VS · 反方牌'],
-  ['优化','双表盘的表盘、���字、进度条、状态文字改为与单表盘同一套样式，不再是两套并行实现'],
+  ['优化','双表盘的表盘、数字、进度条、状态文字改为与单表盘同一套样式，不再是两套并行实现'],
   ['修复','设置里的「投影字号放大」此前只对双表盘生效、单表盘毫无反应，现已拆分为两组独立滑块，三个视图都可调节'],
   ['修复','表盘直径此前写死在样式里无法调节，现可通过滑块调整'],
   ['优化','数字放到 200% 若超出表盘会自动等比缩小，保证完整显示'],
@@ -3966,7 +3974,6 @@ function bgMakeFileName(origName){
   var base=(origName||'背景').replace(/\.[a-zA-Z0-9]{1,5}$/,'').replace(/[\\/:*?"<>|]/g,'_').slice(0,20) || '背景';
   return 'debate-bg_' + base + '_' + (d.getMonth()+1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + '.jpg';
 }
-function bgPad2(n){ return (n<10?'0':'')+n; }
 // 压缩到指定宽度（JPEG dataURL），作为 localStorage 兜底
 function bgCompress(file, maxW){
   return new Promise(function(res, rej){
@@ -3992,18 +3999,6 @@ function bgCompress(file, maxW){
   });
 }
 function bgDataUrlBytes(url){ return String(url||'').length * 2; }
-// 把 Blob 转 dataURL（用于落盘与localStorage 兜底）
-function bgBlobToDataUrl(blob){
-  return new Promise(function(res, rej){
-    var fr=new FileReader();
-    fr.onload=function(){ res(String(fr.result||'')); };
-    fr.onerror=function(){ rej(new Error('读取失败')); };
-    fr.readAsDataURL(blob);
-  });
-}
-function bgDataUrlToBlob(url){
-  return fetch(url).then(function(r){ return r.blob(); });
-}
 // 下载 blob 为文件（外部文件模式）
 function bgDownloadBlob(blob, fileName){
   var url=URL.createObjectURL(blob);
@@ -4599,56 +4594,95 @@ function updateTitle(txt){
 }
 
 /* ===================== 主循环（时间戳差值，防漂移/抗后台） ===================== */
-function frame(){
+/* v2.9.6：计时循环拆分为两个角色 ——
+   tick()：只做「状态推进 + 判定」，是唯一写 state 的循环，由后台节拍器驱动；
+   paint()：只把 state 画到界面（不写 state），由 rAF 在页面可见时逐帧驱动。
+   拆分原因：rAF 在页面转入后台时被浏览器暂停，此前推进 / 判定 / 渲染都挂在
+   同一个 rAF 循环上，导致后台期间 state 冻结 —— 主控与投影显示双双停滞、
+   黄灯与到点铃声/交接也不触发。*/
+function tick(){
   var now=Date.now();
   var st=curStage();
-  if(st){
-    if(st.mode==='single' && state.running){
-      var left=state.endAt-now;
-      if(left<=0){ onStop(); }
+  if(!st){ return; }
+  if(st.mode==='single' && state.running){
+    var left=state.endAt-now;
+    if(left<=0){ onStop(); }
+    else{
+      state.remain=left;
+      var seg=curSeg();
+      if(!state.warnFired && left<=seg.warn*1000){ onWarn(); }
+    }
+  }else if(st.mode==='free' && state.free.running && state.free.active){
+    var f=state.free, a=f.active;
+    var remain=f.endAt-now;
+    if(remain<=0){ onSideDone(a); }
+    else{ f[a]=remain; }
+  }else if(st.mode==='gbdual'){
+    var g=state.gb, rd=g.r[g.active];
+    if(rd && rd.running && rd.talk){
+      var gleft=rd.endAt-now, gside=rd.talk;
+      if(gleft<=0){ onGbSideDone(gside); }
       else{
-        state.remain=left;
-        var seg=curSeg();
-        if(!state.warnFired && left<=seg.warn*1000){ onWarn(); }
-        $('timeBig').textContent=fmtMS(left);
-        var ratio=seg.dur>0?left/(seg.dur*1000):0;
-        $('ringFg').style.strokeDashoffset=String(RING_LEN*(1-ratio));
-        var _m=DIAL_STYLES[settings.dialStyle]?settings.dialStyle:'ring';
-        if(_m==='square'){ drawSquare(ratio); }
-        else if(_m==='dots'){ drawDots(ratio); }
-        updateTitle(fmtMS(left)+' · '+seg.label);
-      }
-    }else if(st.mode==='free' && state.free.running && state.free.active){
-      var f=state.free, a=f.active;
-      var remain=f.endAt-now;
-      if(remain<=0){ onSideDone(a); }
-      else{
-        f[a]=remain;
-        $(a+'Time').textContent=fmtMS(remain);
-        setDualRing(a+'Ring', remain/(settings.ziyou*1000));
-        updateTitle(fmtMS(f.pro)+' / '+fmtMS(f.con)+' · 自由辩论');
-      }
-    }else if(st.mode==='gbdual'){
-      var g=state.gb, rd=g.r[g.active];
-      if(rd && rd.running && rd.talk){
-        var gleft=rd.endAt-now, gside=rd.talk;
-        if(gleft<=0){ onGbSideDone(gside); }
-        else{
-          rd[gside]=gleft;
-          if(!rd.fired[gside] && gleft<=settings.gongWarn*1000){
-            rd.fired[gside]=true; warnSound();
-            toast('剩余 '+fmtSec(settings.gongWarn)+'，黄灯提醒','warn');
-          }
-          var gCap=(gside==='pro'?'Pro':'Con');
-          $('gb'+gCap+'Time').textContent=fmtMS(gleft);
-          setDualRing('gb'+gCap+'Ring', gleft/(gcfg()[gside].dur*1000));
-          if(rd.fired[gside] && !$('gb'+gCap+'Clock').className.includes('warn')){ renderGb(); }
-          updateTitle(fmtMS(gleft)+' · 攻辩'+gcfg().name);
+        rd[gside]=gleft;
+        if(!rd.fired[gside] && gleft<=settings.gongWarn*1000){
+          rd.fired[gside]=true; warnSound();
+          toast('剩余 '+fmtSec(settings.gongWarn)+'，黄灯提醒','warn');
         }
       }
     }
   }
+}
+function paint(){
+  var now=Date.now();
+  var st=curStage();
+  if(!st){ return; }
+  if(st.mode==='single' && state.running){
+    var left=Math.max(0,state.endAt-now);   // 渲染用实时值（不写 state）
+    var seg=curSeg();
+    $('timeBig').textContent=fmtMS(left);
+    var ratio=seg.dur>0?left/(seg.dur*1000):0;
+    $('ringFg').style.strokeDashoffset=String(RING_LEN*(1-ratio));
+    var _m=DIAL_STYLES[settings.dialStyle]?settings.dialStyle:'ring';
+    if(_m==='square'){ drawSquare(ratio); }
+    else if(_m==='dots'){ drawDots(ratio); }
+    updateTitle(fmtMS(left)+' · '+seg.label);
+  }else if(st.mode==='free' && state.free.running && state.free.active){
+    var f=state.free, a=f.active;
+    var remain=Math.max(0,f.endAt-now);
+    $(a+'Time').textContent=fmtMS(remain);
+    setDualRing(a+'Ring', remain/(settings.ziyou*1000));
+    updateTitle(fmtMS(f.pro)+' / '+fmtMS(f.con)+' · 自由辩论');
+  }else if(st.mode==='gbdual'){
+    var g=state.gb, rd=g.r[g.active];
+    if(rd && rd.running && rd.talk){
+      var gside=rd.talk, gleft=Math.max(0,rd.endAt-now);
+      var gCap=(gside==='pro'?'Pro':'Con');
+      $('gb'+gCap+'Time').textContent=fmtMS(gleft);
+      setDualRing('gb'+gCap+'Ring', gleft/(gcfg()[gside].dur*1000));
+      if(rd.fired[gside] && !$('gb'+gCap+'Clock').className.includes('warn')){ renderGb(); }
+      updateTitle(fmtMS(gleft)+' · 攻辩'+gcfg().name);
+    }
+  }
+}
+function frame(){
+  paint();
   requestAnimationFrame(frame);
+}
+/* v2.9.6：后台节拍器。浏览器在页面转入后台时会暂停 rAF 并把主线程定时器
+   节流到不低于 1 秒；但 Worker 的定时器不受该节流影响。用 Worker 每 250ms
+   驱动一次 tick + broadcast，保证主控切后台后：状态照常推进、黄灯 / 到点
+   铃声与自动交接照常触发、投影照常收到快照。Worker 无法创建时回退为
+   普通 setInterval（最差等同旧行为，不会更差）。*/
+function startHeartbeat(){
+  var beat=function(){ tick(); broadcast(); };
+  var wk=null;
+  try{
+    var src='setInterval(function(){postMessage(1);},250);';
+    var url=URL.createObjectURL(new Blob([src],{type:'application/javascript'}));
+    wk=new Worker(url);
+    wk.onmessage=beat;
+  }catch(e){ wk=null; }
+  if(!wk){ setInterval(beat,250); }
 }
 
 /* ===================== 设置抽屉 ===================== */
@@ -5273,22 +5307,6 @@ function renderChangelog(){
 function wnCurrentRec(){
   for(var i=0;i<CHANGELOG.length;i++){ if(CHANGELOG[i].v === APP_VER) return CHANGELOG[i]; }
   return CHANGELOG[0] || null;
-}
-function showWhatsNew(){
-  var card = $('whatsNew');
-  if(!card) return;
-  var rec = wnCurrentRec();
-  if(!rec) return;
-  var vs = card.querySelectorAll('.wn-ver');
-  for(var i=0;i<vs.length;i++){ vs[i].textContent = APP_VER; }
-  var ul = $('wnList');
-  if(ul){
-    ul.innerHTML = rec.items.slice(0,6).map(function(it){
-      return '<li>'+escHtml(it[1])+'</li>';
-    }).join('');
-  }
-  card.classList.add('show');
-  card.setAttribute('aria-hidden','false');
 }
 function hideWhatsNew(){
   var card = $('whatsNew');
@@ -5951,6 +5969,8 @@ function buildSnapshot(){
     // 快照带完整精度（毫秒），投影侧按自己的数字格式设置裁剪；
     // 主控显示仍由 fmtMS 依据 settings.timePrecise 决定，两者互不影响
     snap.remain=fmtMSPrecise(state.remain);
+    snap.remainMs=state.remain;   // v2.9.6：供投影本地走表
+    snap.dur=seg.dur;             // v2.9.6：供投影本地走表算进度
     snap.ratio=seg.dur>0?Math.max(0,Math.min(1,state.remain/(seg.dur*1000))):0;
     snap.lamp=state.stopFired?'stop':(state.warnFired?'warn':'normal');
     snap.running=state.running;
@@ -6007,18 +6027,74 @@ function pinProjectorDigit(){
   applyPjSizeSettings();
 }
 // 投影时间格式化：按投影独立的数字格式设置（0 分:秒 / 1 厘秒 / 2 毫秒）
-function pjFormatRemain(s){
-  var r = (s && s.remain) || '';
-  var mode = (s && typeof s.pjTimePrecise === 'number') ? s.pjTimePrecise
-           : ((settings && settings.pjTimePrecise) || 0);
-  var m = r.match(/^(\d+):(\d+)(?:\.(\d))?$/);
+/* v2.9.6：把完整精度文本按投影精度裁剪（原 pjFormatRemain 主体抽出，
+   供快照渲染与本地走表共用）。快照只带 1 位小数（0.1 秒）。*/
+function pjTrim(r, mode){
+  var m = String(r||'').match(/^(\d+):(\d+)(?:\.(\d))?$/);
   if(!m){ return r; }
   if(mode <= 0){ return m[1] + ':' + m[2]; }
-  var frac = m[3] || '0';          // 快照只带1 位（0.1秒）
+  var frac = m[3] || '0';
   var keep = (mode === 1) ? 1 : 3;
   frac = frac.slice(0, keep);
   if(frac.length < keep){ frac += new Array(keep - frac.length + 1).join('0'); }
   return m[1] + ':' + m[2] + '.' + frac;
+}
+function pjFormatRemain(s){
+  var r = (s && s.remain) || '';
+  var mode = (s && typeof s.pjTimePrecise === 'number') ? s.pjTimePrecise
+           : ((settings && settings.pjTimePrecise) || 0);
+  return pjTrim(r, mode);
+}
+/* v2.9.6：投影本地走表。
+   主控在后台时快照推送会变稀（浏览器节流），此前投影完全依赖推送刷新，
+   倒计时会出现「停滞」。现按快照抵达时的毫秒基准在本地连续推算显示：
+   快照到达即校准基准；本地循环只更新数字 / 进度环 / 进度条，
+   灯态与状态文字仍以快照为准（不做双头判定）。
+   注：投影窗口自身被遮挡时其定时器也会被节流到 1 秒级，秒级显示仍连续。*/
+var pjBase=null;
+function pjSetBase(s){
+  var b={ at:(typeof s.t==='number')?s.t:Date.now(), mode:s.mode, isGb:false };
+  if(s.mode==='single'){
+    b.run=!!s.running;
+    b.remainMs=(typeof s.remainMs==='number')?s.remainMs:null;
+    b.dur=(typeof s.dur==='number')?s.dur:0;
+  }else if(s.mode==='gbdual' && s.gbPro && s.gbCon){
+    b.isGb=true;
+    b.pro={ms:s.gbPro.remainMs||0, run:!!(s.gbPro.running&&s.gbPro.active), dur:s.gbPro.dur||0};
+    b.con={ms:s.gbCon.remainMs||0, run:!!(s.gbCon.running&&s.gbCon.active), dur:s.gbCon.dur||0};
+  }else{
+    b.pro={ms:s.proRemainMs||0, run:!!(s.frunning&&s.active==='pro'), dur:s.proDur||0};
+    b.con={ms:s.conRemainMs||0, run:!!(s.frunning&&s.active==='con'), dur:s.conDur||0};
+  }
+  pjBase=b;
+}
+function pjTick(){
+  if(!pjBase){ return; }
+  var el=Date.now()-pjBase.at;
+  if(pjBase.mode==='single'){
+    if(!pjBase.run || pjBase.remainMs==null){ return; }
+    var cur=Math.max(0, pjBase.remainMs-el);
+    var txt=pjTrim(fmtMSPrecise(cur), settings.pjTimePrecise||0);
+    var tEl=$('pjTime');
+    if(tEl && tEl.textContent!==txt){ tEl.textContent=txt; fitTime(); }
+    if(pjBase.dur>0 && $('pjBar')){
+      $('pjBar').style.width=Math.round(Math.max(0,Math.min(1,cur/(pjBase.dur*1000)))*100)+'%';
+    }
+  }else if(pjBase.pro && pjBase.con){
+    var pre=pjBase.isGb?'pjGb':'pj';
+    ['pro','con'].forEach(function(side){
+      var d=pjBase[side];
+      if(!d || !d.run){ return; }
+      var cur=Math.max(0, d.ms-el);
+      var cap=(side==='pro')?'Pro':'Con';
+      var tEl=$(pre+cap+'Time');
+      if(tEl){ tEl.textContent=fmtMS(cur); }
+      if(d.dur>0){
+        paintDial(pre+cap, settings.pjDialStyle||'ring',
+          Math.max(0,Math.min(1,cur/(d.dur*1000))), d.dur);
+      }
+    });
+  }
 }
 // 投影表盘：跟随 pjDialStyle，支持环形 / 方形 / 圆点 / 无
 var PJ_RING_LEN = 2 * Math.PI * 90;
@@ -6351,6 +6427,7 @@ function applySnapshot(s){
   if(!s || !s.mode){ return; }
   pinProjectorDigit();
   pjLast=Date.now();
+  pjSetBase(s);   // v2.9.6：校准本地走表基准
   document.body.classList.remove('pj-lost');
   $('pjProName').textContent=s.proName; $('pjConName').textContent=s.conName;
   // 正反方辩题：各自独立，为空则该行隐藏
@@ -6481,6 +6558,7 @@ function initProjector(){
   try{ var raw=localStorage.getItem(PC_KEY); if(raw){ applySnapshot(JSON.parse(raw)); } }catch(e){}
   // 1.5 秒收不到任何快照则提示等待
   setInterval(function(){ if(Date.now()-pjLast>1500){ document.body.classList.add('pj-lost'); } },500);
+  setInterval(pjTick,100);   // v2.9.6：本地走表循环（推送变稀时倒计时仍连续）
   // 点击副屏进入浏览器全屏（需用户手势）
   // 说明浮层显示期间不响应点击，避免"关浮层"顺手把画面也全屏了
   $('projectorView').addEventListener('click',function(){
@@ -6549,7 +6627,7 @@ if(PROJECTOR_MODE){
   applyLook();
   loadSeg(0,0);
   requestAnimationFrame(frame);
-  setInterval(broadcast,200); // 走表期间的定时同步兜底
+  startHeartbeat(); // v2.9.6：节拍器驱动 tick + broadcast（后台不被冻结）
   broadcast();
   /* 欢迎弹窗：首次打开、或版本更新后尚未查看时展示。
      看过当前版本（lastSeenVer === APP_VER）就不再打扰。*/
