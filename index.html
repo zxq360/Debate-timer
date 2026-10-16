@@ -48,6 +48,10 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
+/* v2.11.1：hidden 属性必须真正生效 —— 按钮等元素的作者样式（display:flex 等）
+   会覆盖浏览器默认的 [hidden]{display:none}，出现「设了 hidden 但仍在显示」。
+   实测修复两处：工具栏开关按钮双击后未隐藏、更新日志「返回欢迎」按钮默认露显。 */
+[hidden]{display:none!important;}
 body{
   font-family:var(--font-ui);
   background:var(--bg);color:var(--ink);
@@ -73,9 +77,9 @@ main>section[hidden]{display:none;}
 /* ===== 顶栏：队名 + 全局操作 ===== */
 .topbar{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
 .topbar-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.ghost-btn.icon-only{width:44px;min-width:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
-.ghost-btn.icon-only svg{width:19px;height:19px;}
-.ghost-btn.icon-only[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* v2.11.0：工具栏开关按钮改为「图标 + 文字」（原「仅图标」样式已无使用者） */
+.tool-toggle{padding:8px 14px;font-size:13.5px;}
+.tool-toggle svg{width:17px;height:17px;}
 .teams{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;flex-wrap:wrap;}
 .team-chip{padding:6px 14px;border-radius:999px;font-size:14px;line-height:1.2;display:inline-flex;align-items:center;gap:7px;}
 /* 校徽：无图时不占位 */
@@ -1057,6 +1061,20 @@ body.projector.pj-lost #pjWaiting{display:flex;}
 .modal-head h2{font-size:16px;margin:0;}
 .modal-body{padding:16px 18px;overflow-y:auto;}
 .modal-body p,.modal-body li{font-size:14px;line-height:1.7;color:var(--ink);}
+/* ===== v2.10.0：移动端滚动提示（浮动小圆钮） =====
+   长内容弹窗 / 设置抽屉在手机上容易被误认为「已到底」。
+   可继续下滚时浮出小圆钮提示；点击向下滚一屏，到底自动消失；
+   仅窄屏显示（桌面端有原生滚动条，不加打扰）。 */
+.scroll-hint{
+  position:sticky;bottom:12px;margin-top:-56px;margin-left:auto;margin-right:2px;
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--panel);color:var(--ink);font-size:19px;font-weight:800;
+  box-shadow:0 4px 14px rgba(0,0,0,.20);cursor:pointer;
+  opacity:0;pointer-events:none;transition:opacity .18s;
+}
+.scroll-hint.show{opacity:.96;pointer-events:auto;}
+@media (min-width:769px){ .scroll-hint{display:none!important;} }
 .modal-body ul{padding-left:20px;margin:8px 0;}
 .modal-body h4{font-size:13.5px;color:var(--ink-2);margin:14px 0 6px;letter-spacing:.03em;}
 .modal-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
@@ -1143,28 +1161,6 @@ body.pj-tip-open #projectorView{pointer-events:none;}
 .cl-more{margin-top:12px;}
 .cl-hidden{display:none !important;}
 
-/* 最近更新提示卡片 */
-.whatsnew{
-  position:fixed;right:16px;bottom:16px;width:296px;max-width:calc(100vw - 32px);z-index:70;
-  border:1px solid var(--line);border-radius:15px;background:var(--panel);
-  box-shadow:0 10px 32px rgba(28,25,20,.2);overflow:hidden;display:none;
-}
-.whatsnew.show{display:block;}
-.wn-head{display:flex;align-items:center;gap:8px;padding:11px 13px 8px;border-bottom:1px solid var(--line);}
-.wn-title{font-size:14px;font-weight:700;color:var(--accent);}
-.wn-x{margin-left:auto;flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--ink-2);cursor:pointer;border-radius:7px;padding:0;}
-.wn-x:hover{background:#F0EEE7;}
-.wn-list{list-style:none;margin:0;padding:9px 13px 4px;max-height:184px;overflow:auto;}
-.wn-list li{font-size:12.5px;line-height:1.66;color:var(--ink);padding-left:12px;position:relative;margin-bottom:5px;}
-.wn-list li::before{content:'';position:absolute;left:2px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--accent);}
-.wn-foot{display:flex;gap:8px;padding:8px 13px 11px;}
-.wn-lnk{flex:1 1 0;min-height:34px;border:1px solid var(--line);border-radius:9px;background:#FBFAF6;font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;padding:0 8px;}
-.wn-lnk:hover{background:#F0EEE7;}
-.wn-lnk.wn-mute{flex:0 0 auto;color:var(--ink-2);font-weight:400;}
-@media (max-width:420px){
-  .whatsnew{right:10px;left:10px;bottom:10px;width:auto;max-width:none;}
-}
-
 /* 投影模式下隐藏一切弹窗与引导（副屏无交互） */
 body.projector .modal-mask:not(#pjTipMask),body.projector #guideMask,body.projector #guideBubble{display:none!important;}
 body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);}
@@ -1192,8 +1188,9 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
         <span class="vs">VS</span>
         <span class="team-chip con"><img class="logo logo-chip" id="conLogoTop" alt=""><span id="conNameTop">反方</span></span>
       </div>
-      <button class="ghost-btn icon-only" id="toolToggle" type="button" title="展开 / 收起工具栏" aria-expanded="false">
+      <button class="ghost-btn tool-toggle" id="toolToggle" type="button" title="工具栏：点击展开 / 收起 · 双击隐藏按钮" aria-expanded="true">
         <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9.4 4a7.4 7.4 0 01-.1 1.2l2 1.6-2 3.4-2.4-1a7.6 7.6 0 01-2 1.2L16.5 21h-4l-.4-2.6a7.6 7.6 0 01-2-1.2l-2.4 1-2-3.4 2-1.6A7.4 7.4 0 012.6 12c0-.4 0-.8.1-1.2l-2-1.6 2-3.4 2.4 1a7.6 7.6 0 012-1.2L9.5 3h4l.4 2.6a7.6 7.6 0 012 1.2l2.4-1 2 3.4-2 1.6c.1.4.1.8.1 1.2z"/></svg>
+        <span id="toolToggleText">收起</span>
       </button>
     </div>
     <div class="top-actions" id="topActions" hidden>
@@ -1738,7 +1735,7 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
   <div class="modal" role="dialog" aria-label="关于">
     <div class="modal-head"><h2>关于</h2><button class="ghost-btn modal-close" type="button">关闭</button></div>
     <div class="modal-body">
-      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;" id="aboutVer">v2.9.6 · 单文件 · 零依赖 · 可离线</span></p>
+      <p style="font-weight:700;font-size:15.5px;">辩论赛计时器<br><span style="font-weight:400;color:var(--ink-2);font-size:13.5px;" id="aboutVer">v2.11.1 · 单文件 · 零依赖 · 可离线</span></p>
       <p class="about-tip">面向高校辩论赛的赛场计时工具，采用三人制赛制，支持主控屏与投影副屏双屏联动。内置环节结构与时长为通用预设，请依据所在赛事的实际规则自行核对调整。</p>
       <div class="about-links">
         <a class="about-link" href="https://github.com/zxq360/Debate-timer" target="_blank" rel="noopener">
@@ -1767,6 +1764,36 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
   </div>
 </div>
 
+<!-- v2.11.0：未结束的计时会话恢复提示 -->
+<div class="modal-mask" id="restoreMask" aria-hidden="true">
+  <div class="modal" role="dialog" aria-label="恢复计时">
+    <div class="modal-head"><h2>发现未结束的计时</h2><button class="ghost-btn modal-close" type="button">关闭</button></div>
+    <div class="modal-body">
+      <p id="restoreInfo" style="font-weight:700;">-</p>
+      <p class="set-tip" style="margin:8px 0 0;">上次计时未正常结束（可能是刷新或误关页面）。选择「恢复计时」将按真实流逝的时间继续；选择「忽略」则放弃这次的计时进度。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="ctl" id="restoreDrop" type="button">忽略</button>
+      <button class="ctl primary" id="restoreGo" type="button">恢复计时</button>
+    </div>
+  </div>
+</div>
+
+<!-- v2.11.0：检测到新版本时的提醒 -->
+<div class="modal-mask" id="updateMask" aria-hidden="true">
+  <div class="modal" role="dialog" aria-label="发现新版本">
+    <div class="modal-head"><h2>发现新版本</h2><button class="ghost-btn modal-close" type="button">关闭</button></div>
+    <div class="modal-body">
+      <p style="font-weight:700;">新版本：v<span id="updateVerNew">-</span> <span id="updateDate" style="font-weight:400;color:var(--ink-2);font-size:12.5px;"></span></p>
+      <p class="set-tip" style="margin:8px 0 0;">当前 v<span id="updateVerCur">-</span>。前往下载页获取新版本文件，按原方式替换即可，配置与存档不受影响。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="ctl" id="updateLater" type="button">稍后</button>
+      <button class="ctl primary" id="updateGo" type="button">查看更新</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-mask" id="changelogMask" aria-hidden="true">
   <div class="modal" role="dialog" aria-label="更新日志">
     <div class="modal-head"><h2>更新日志</h2><button class="ghost-btn cl-back" id="clBackWelcome" type="button" hidden>返回欢迎</button><button class="ghost-btn modal-close" type="button">关闭</button></div>
@@ -1775,20 +1802,6 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
       <div id="clList" class="cl-list"></div>
       <div class="cl-more"><button class="mini-btn" id="clMore" type="button" style="width:100%;">展开更早的版本</button></div>
     </div>
-  </div>
-</div>
-
-<div class="whatsnew" id="whatsNew" aria-hidden="true">
-  <div class="wn-head">
-    <span class="wn-title">已更新到 v<span class="wn-ver">-</span></span>
-    <button class="wn-x" id="wnClose" type="button" title="关闭" aria-label="关闭">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.7L12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z"/></svg>
-    </button>
-  </div>
-  <ul class="wn-list" id="wnList"></ul>
-  <div class="wn-foot">
-    <button class="wn-lnk" id="wnLog" type="button">查看完整更新日志</button>
-    <button class="wn-lnk wn-mute" id="wnNever" type="button">不再提示此版本</button>
   </div>
 </div>
 
@@ -1932,7 +1945,7 @@ body.projector #pjTipMask{display:flex;z-index:90;background:rgba(15,18,23,.72);
 'use strict';
 
 /* ===== 应用版本号（单一真相源） ===== */
-var APP_VER = '2.9.6';
+var APP_VER = '2.11.1';
 
 /* ===== v2.2.0 新增：内置更新日志数据 =====
  * 数据来源：项目内 24 份 README_x.y.z.md 归档说明 + README.md 版本记录
@@ -1940,6 +1953,21 @@ var APP_VER = '2.9.6';
  * 结构：{ v: 版本号, d: 发布日期, tag: 大版本标签, items: [[分类, 要点], ...] }
  */
 var CHANGELOG = [
+{ v:'2.11.1', d:'2026-10-16', tag:'修复与收尾', items:[
+  ['修复','「设了隐藏但仍在显示」：hidden 属性被元素自身样式（display:flex 等）覆盖——工具栏开关按钮双击后不消失、更新日志「返回欢迎」按钮默认露显。现加全站兜底规则 [hidden]{display:none!important}'],
+  ['修复','恢复计时前先校验环节结构是否仍有效（防止改动环节后恢复落入模糊失败）；结构已变化时给出明确提示并安全清除'],
+  ['优化','帮助文案补充近期新功能说明（计时自动保存与恢复、工具栏按钮用法、自动检查更新、Esc 关闭弹窗）；清理 v2.4.0 起废弃的旧「已更新到」卡片全套残骸']
+]},
+{ v:'2.11.0', d:'2026-10-16', tag:'防误操作与新版本提醒', items:[
+  ['新增','计时会话保护：计时进行中（含暂停）刷新或关闭页面时会先确认；未结束的计时会在下次打开时弹窗询问是否恢复（按真实流逝时间校正，24 小时内有效）'],
+  ['新增','启动时自动检查新版本，检测到新版本即弹窗提醒（每次检测到都会提醒）'],
+  ['优化','顶部「展开 / 收起」工具栏按钮加文字提示并支持双击隐藏（仅本次会话，下次打开自动恢复）；工具栏每次打开都自动展开，不再记忆收起状态'],
+  ['优化','工程收尾：全屏按钮测试补齐；README 与测试脚本的组数 / 项数纳入静态一致性校验；文档小修']
+]},
+{ v:'2.10.0', d:'2026-10-16', tag:'移动端滚动提示', items:[
+  ['新增','手机端长内容提示：弹窗与设置抽屉的长内容在手机上不易察觉「下方还有内容」（内容以按钮结尾时尤甚）。可继续下滚时，滚动区右下角浮出「↓」小圆钮，点击向下滚一屏、滚到底自动消失'],
+  ['优化','滚动提示覆盖全部弹窗（关于 / 帮助 / 更新日志 / 欢迎 / 摆放说明）与设置抽屉；内容动态变化时自动重新判断；仅窄屏（宽度小于 769px）显示，桌面端有原生滚动条不加打扰']
+]},
 { v:'2.9.6', d:'2026-10-16', tag:'后台计时修复', items:[
   ['修复','主控切到后台后主控与投影的倒计时都停滞、切回才跳变：状态推进原挂在 requestAnimationFrame 上，页面转入后台时浏览器暂停 rAF 导致整条链路冻结。现拆分为 tick（状态推进与判定）与 paint（纯渲染），前者由后台节拍器（Worker 定时器，不受后台节流）每 250ms 驱动'],
   ['修复','同一根因下后台期间黄灯 / 红灯铃声与到点自动交接不再触发的问题（判定移入节拍器后照常生效）'],
@@ -4154,6 +4182,7 @@ function loadSeg(sIdx, gIdx){
   state.running=false; state.endAt=0;
   state.warnFired=false; state.stopFired=false;
   renderAll();
+  saveSession(true); // v2.11.0：切段 / 重置后立即同步会话标记
 }
 function startSeg(){
   var seg=curSeg();
@@ -4162,6 +4191,7 @@ function startSeg(){
   state.running=true;
   state.endAt=Date.now()+state.remain;
   renderControls();
+  saveSession(true); // v2.11.0
 }
 function pauseSeg(){
   if(!state.running){ return; }
@@ -4169,6 +4199,7 @@ function pauseSeg(){
   state.running=false;
   releaseWake();
   renderControls();
+  saveSession(true); // v2.11.0
 }
 function toggleSeg(){
   if(state.stopFired){ next(); return; }
@@ -4205,6 +4236,7 @@ function onStop(){
     clearAutoTimer();
     state.autoTimer=setTimeout(function(){ next(); },2500);
   }
+  saveSession(true); // v2.11.0：到点状态立即落盘
 }
 function clearAutoTimer(){ if(state.autoTimer){ clearTimeout(state.autoTimer); state.autoTimer=null; } }
 
@@ -4233,6 +4265,183 @@ function enterStage(sIdx){
   else { resetFree(); renderAll(); }
 }
 
+/* ===================== v2.11.0：计时会话持久化与恢复 =====================
+   防「误刷新 / 误关页面」导致计时状态丢失：
+   - 关键操作即时写、节拍器每 2 秒兜底写（localStorage 独立键）；
+   - 页面重开时若发现 24 小时内的未结束会话，弹窗询问是否恢复；
+   - 恢复按绝对时间校正：运行中继续走、暂停保持暂停。 */
+var SESSION_KEY='debate-timer-session-v1';
+var __sessionLast=0;
+var __sessionBootAt=Date.now();
+/* 「有未结束的计时进度」——同时用于：保存、离开拦截（beforeunload）、恢复提示 */
+function sessionActive(){
+  var st=curStage();
+  if(!st){ return false; }
+  if(st.mode==='single'){
+    var seg=curSeg();
+    if(!seg){ return false; }
+    if(state.running){ return true; }
+    return (!state.stopFired && state.remain < seg.dur*1000 - 300);
+  }
+  if(st.mode==='free'){
+    var f=state.free;
+    if(f.running){ return true; }
+    if(f.proDone && f.conDone){ return false; }
+    var full=settings.ziyou*1000;
+    return (f.pro < full-300 || f.con < full-300);
+  }
+  var rd=state.gb.r[state.gb.active];
+  if(!rd){ return false; }
+  if(rd.running){ return true; }
+  if(rd.proDone && rd.conDone){ return false; }
+  var cfg=gcfg();
+  return (rd.pro < cfg.pro.dur*1000-300 || rd.con < cfg.con.dur*1000-300);
+}
+function saveSession(force){
+  if(!force && Date.now()-__sessionLast < 2000){ return; }
+  __sessionLast=Date.now();
+  try{
+    if(!sessionActive()){
+      /* 启动后的短暂保护期内不清除既有会话——
+         启动流程里有 loadSeg(0,0) 等初始化写入，若不保护，
+         会把「待恢复的旧会话」在恢复检查之前误清掉（实测踩过）。 */
+      if(Date.now()-__sessionBootAt < 5000){ return; }
+      localStorage.removeItem(SESSION_KEY); return;
+    }
+    var st=curStage();
+    if(!st){ return; }
+    var d={ ts:Date.now(), sIdx:state.sIdx, gIdx:state.gIdx, mode:st.mode, name:'' };
+    if(st.mode==='single'){
+      var seg=curSeg();
+      d.name=seg?seg.label:st.name;
+      d.single={ remain:state.remain, running:state.running, endAt:state.endAt,
+                 warnFired:!!state.warnFired, stopFired:!!state.stopFired };
+    }else if(st.mode==='free'){
+      var f=state.free;
+      d.name=st.name+' · 自由辩论';
+      d.free={ pro:f.pro, con:f.con, active:f.active, running:f.running, endAt:f.endAt,
+               proDone:!!f.proDone, conDone:!!f.conDone, fired:{pro:!!(f.fired&&f.fired.pro), con:!!(f.fired&&f.fired.con)} };
+    }else{
+      var g=state.gb;
+      d.name=st.name+' · 第 '+(g.active+1)+' 次攻辩';
+      d.gb={ active:g.active, r:g.r };
+    }
+    localStorage.setItem(SESSION_KEY, JSON.stringify(d));
+  }catch(e){}
+}
+function initSessionRestore(){
+  var raw=null;
+  try{ raw=localStorage.getItem(SESSION_KEY); }catch(e){}
+  if(!raw){ return false; }
+  var d=null;
+  try{ d=JSON.parse(raw); }catch(e){}
+  if(!d || !d.ts || !d.mode){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} return false; }
+  if(Date.now()-d.ts > 24*3600*1000){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} return false; }
+  /* v2.11.1：恢复前校验环节 / 段 / 轮次索引仍有效（用户可能已改动环节结构） */
+  var _stX = (typeof stages!=='undefined' && stages) ? stages[d.sIdx] : null;
+  var _badIdx = false;
+  if(!_stX || _stX.mode !== d.mode){ _badIdx = true; }
+  else if(d.mode==='single' && (!_stX.segs || !_stX.segs[d.gIdx])){ _badIdx = true; }
+  else if(d.mode==='gbdual' && (!_stX.rounds || !d.gb || !d.gb.r || d.gb.active >= _stX.rounds.length || d.gb.r.length !== _stX.rounds.length)){ _badIdx = true; }
+  if(_badIdx){
+    try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+    toast('环节设置已变化，无法自动恢复上次计时');
+    return false;
+  }
+  var rem='-', stateTxt='';
+  if(d.mode==='single' && d.single){
+    var v=Math.max(0, d.single.running ? (d.single.endAt-Date.now()) : d.single.remain);
+    rem=fmtMS(v);
+    stateTxt=d.single.stopFired ? '已到点' : (d.single.running ? '计时中' : '已暂停');
+  }else if(d.mode==='free' && d.free){
+    var f2=d.free;
+    var pv=Math.max(0, (f2.running&&f2.active==='pro') ? (f2.endAt-Date.now()) : f2.pro);
+    var cv=Math.max(0, (f2.running&&f2.active==='con') ? (f2.endAt-Date.now()) : f2.con);
+    rem=fmtMS(pv)+' / '+fmtMS(cv);
+    stateTxt=f2.running ? '计时中' : '已暂停';
+  }else if(d.gb && d.gb.r){
+    var rd2=d.gb.r[d.gb.active] || {};
+    var pr=Math.max(0, (rd2.running&&rd2.talk==='pro') ? (rd2.endAt-Date.now()) : rd2.pro);
+    var cr=Math.max(0, (rd2.running&&rd2.talk==='con') ? (rd2.endAt-Date.now()) : rd2.con);
+    rem=fmtMS(pr)+' / '+fmtMS(cr);
+    stateTxt=rd2.running ? '计时中' : '已暂停';
+  }
+  $('restoreInfo').textContent=(d.name||'上一段计时')+' · 剩余 '+rem+'（'+stateTxt+'）';
+  window.__restoreData=d;
+  openModal($('restoreMask'));
+  return true;
+}
+function doRestoreSession(){
+  var d=window.__restoreData;
+  if(!d){ closeModal($('restoreMask')); return; }
+  window.__restoreData=null;
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  try{
+    if(d.mode==='single' && d.single){
+      loadSeg(d.sIdx, d.gIdx);
+      var s1=d.single;
+      state.warnFired=!!s1.warnFired; state.stopFired=!!s1.stopFired;
+      if(s1.running && !s1.stopFired){
+        state.remain=Math.max(0, s1.endAt-Date.now());
+        if(state.remain>0){
+          ensureAudio(); requestWake();
+          state.running=true; state.endAt=Date.now()+state.remain;
+        }else{ state.remain=0; state.running=false; state.stopFired=true; }
+      }else{ state.remain=Math.max(0, s1.remain); }
+      renderAll();
+      toast('已恢复：'+(curSeg()?curSeg().label:''));
+    }else if(d.mode==='free' && d.free){
+      enterStage(d.sIdx);
+      var f3=d.free;
+      state.free.pro=f3.pro; state.free.con=f3.con;
+      state.free.proDone=!!f3.proDone; state.free.conDone=!!f3.conDone;
+      if(f3.fired){ state.free.fired={pro:!!f3.fired.pro, con:!!f3.fired.con}; }
+      if(f3.running && f3.active && !(f3.proDone && f3.conDone)){
+        var v3=Math.max(0, f3.endAt-Date.now());
+        if(v3>0){
+          ensureAudio(); requestWake();
+          state.free.running=true; state.free.active=f3.active;
+          state.free.endAt=Date.now()+v3; state.free[f3.active]=v3;
+        }
+      }
+      renderFree(); renderControls();
+      toast('已恢复：自由辩论');
+    }else if(d.gb && d.gb.r){
+      enterStage(d.sIdx);
+      var g3=state.gb;
+      if(d.gb.r.length===g3.r.length){
+        for(var ri=0; ri<g3.r.length; ri++){
+          var src=d.gb.r[ri], dst=g3.r[ri];
+          if(!src||!dst){ continue; }
+          dst.pro=src.pro; dst.con=src.con;
+          dst.proDone=!!src.proDone; dst.conDone=!!src.conDone;
+          if(src.fired){ dst.fired={pro:!!src.fired.pro, con:!!src.fired.con}; }
+        }
+        g3.active=d.gb.active||0;
+        var srcA=d.gb.r[g3.active], rd3=g3.r[g3.active];
+        if(srcA && rd3 && srcA.running && srcA.talk){
+          var v4=Math.max(0, srcA.endAt-Date.now());
+          if(v4>0){
+            ensureAudio(); requestWake();
+            rd3.running=true; rd3.talk=srcA.talk;
+            rd3.endAt=Date.now()+v4; rd3[srcA.talk]=v4;
+          }
+        }
+      }
+      renderGb(); renderGbControls();
+      toast('已恢复：攻辩');
+    }
+    broadcast();
+    saveSession(true);
+  }catch(e){ toast('恢复失败，请手动检查'); }
+  closeModal($('restoreMask'));
+}
+function dropSession(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+  window.__restoreData=null;
+  closeModal($('restoreMask'));
+}
+
 /* ===================== 自由辩论 ===================== */
 function resetFree(){
   clearAutoTimer(); stopRingAll(); releaseWake();
@@ -4246,6 +4455,7 @@ function freeToggle(){
     if(f.active){ f[f.active]=Math.max(0,f.endAt-Date.now()); }
     f.running=false; releaseWake();
     renderFree(); renderControls();
+    saveSession(true); // v2.11.0
     return;
   }
   if(f.proDone && f.conDone){ toast('双方时间均已用完'); return; }
@@ -4257,6 +4467,7 @@ function freeToggle(){
   f.endAt=Date.now()+f[f.active];
   f.running=true;
   renderFree(); renderControls();
+  saveSession(true); // v2.11.0
 }
 function freeSwitchTo(side){
   var f=state.free;
@@ -4298,6 +4509,7 @@ function onSideDone(side){
     toast('自由辩论结束，双方时间均已用完','stop');
   }
   renderFree(); renderControls();
+  saveSession(true); // v2.11.0
 }
 function sideName(side){ return side==='pro'?settings.proName:settings.conName; }
 
@@ -4323,7 +4535,8 @@ function gbToggle(){
   if(rd.running){
     if(rd.talk){ rd[rd.talk]=Math.max(0,rd.endAt-Date.now()); }
     rd.running=false; releaseWake();
-    renderGb(); renderGbControls(); return;
+    renderGb(); renderGbControls(); saveSession(true); // v2.11.0
+    return;
   }
   if(rd.proDone && rd.conDone){ toast('本轮双方时间均已用完'); return; }
   ensureAudio(); requestWake();
@@ -4334,6 +4547,7 @@ function gbToggle(){
   rd.endAt=Date.now()+rd[rd.talk];
   rd.running=true;
   renderGb(); renderGbControls();
+  saveSession(true); // v2.11.0
 }
 // 点表盘：切换当前发言方（运行中无缝交接，旧方冻结）
 function gbSwitchTo(side){
@@ -4373,6 +4587,7 @@ function onGbSideDone(side){
     }
   }
   renderGb(); renderGbControls();
+  saveSession(true); // v2.11.0
 }
 // 顶部切换轮次（第二轮需第一轮双方走完解锁）
 function gbSwitchRound(r){
@@ -4674,7 +4889,7 @@ function frame(){
    铃声与自动交接照常触发、投影照常收到快照。Worker 无法创建时回退为
    普通 setInterval（最差等同旧行为，不会更差）。*/
 function startHeartbeat(){
-  var beat=function(){ tick(); broadcast(); };
+  var beat=function(){ tick(); broadcast(); saveSession(false); }; // v2.11.0：会话每 2 秒兜底写
   var wk=null;
   try{
     var src='setInterval(function(){postMessage(1);},250);';
@@ -4786,6 +5001,7 @@ function openDrawer(){
   // 显示抽屉
   $('drawer').classList.add('open'); $('drawerMask').classList.add('open');
   $('drawer').setAttribute('aria-hidden','false');
+  ensureScrollHint($('drawer'));   // v2.10.0：滚动提示（内容刚被重绘，这里挂载/校准）
 }
 
 /* ===== 设置分类手风琴：把原 6 个 set-group 重组为 6 个可折叠分类 ===== */
@@ -5221,14 +5437,16 @@ function initHotkeys(){
 }
 
 /* ===== 工具栏折叠 ===== */
-var TOOL_KEY='debate-timer-toolbar-v1';
+/* v2.11.0：收起状态不再写入本地记忆——每次打开都自动展开（下次打开时自动展示）；
+   按钮支持双击隐藏，同样仅对本次会话生效。 */
 function setToolbarOpen(open){
   var a=$('topActions'), b=$('toolToggle');
   if(!a||!b){ return; }
   a.hidden=!open;
   b.setAttribute('aria-expanded', open?'true':'false');
-  b.title = open? '收起工具栏' : '展开工具栏';
-  try{ localStorage.setItem(TOOL_KEY, open?'1':'0'); }catch(e){}
+  b.title = open? '工具栏：点击收起 · 双击隐藏按钮' : '工具栏：点击展开 · 双击隐藏按钮';
+  var t=$('toolToggleText');
+  if(t){ t.textContent = open? '收起' : '展开'; }
 }
 /* ===================== 更新日志 / 最近更新 / 检查更新（v2.2.0） ===================== */
 
@@ -5307,20 +5525,6 @@ function renderChangelog(){
 function wnCurrentRec(){
   for(var i=0;i<CHANGELOG.length;i++){ if(CHANGELOG[i].v === APP_VER) return CHANGELOG[i]; }
   return CHANGELOG[0] || null;
-}
-function hideWhatsNew(){
-  var card = $('whatsNew');
-  if(!card) return;
-  card.classList.remove('show');
-  card.setAttribute('aria-hidden','true');
-  try{ localStorage.setItem(CL_KEY_SEEN, APP_VER); }catch(e){}
-}
-/* v2.4.0：独立的「最近更新」右下角卡片已由首次进入的欢迎弹窗取代
-   （两者内容都是「本次更新了什么」，并存会互相抢占 lastSeenVer 标记）。
-   此处保留函数仅为兼容旧代码路径，不再主动弹出。*/
-function initWhatsNew(){
-  var cb = $('whatsNew');
-  if(cb){ cb.classList.remove('show'); cb.setAttribute('aria-hidden','true'); }
 }
 
 /* --- 检查更新 --- */
@@ -5415,6 +5619,39 @@ function showDlBtn(){
   }
   box.classList.remove('cl-hidden');
 }
+/* v2.11.0：启动静默检查更新。
+   检测到「远端版本比当前新」时弹窗提醒（每次检测到都会提醒）；
+   离线 / 超时 / 解析失败一律静默，不打扰。 */
+var __updateTries=0;
+function autoCheckUpdate(){
+  setTimeout(function(){
+    var ctl=null, to=null;
+    try{ ctl=new AbortController(); to=setTimeout(function(){ if(ctl){ ctl.abort(); } },5000); }catch(e){}
+    fetch(GH_REPO_API, { redirect:'follow', signal: ctl? ctl.signal : undefined })
+      .then(function(r){ if(!r.ok){ throw 0; } return r.json(); })
+      .then(function(j){
+        if(to){ clearTimeout(to); }
+        var remote=parseVer((j && (j.tag_name || j.name)) || '');
+        if(!remote){ return; }
+        if(cmpVer(APP_VER, verStr(remote)) === -1){
+          showUpdateModal(verStr(remote), String((j && j.published_at)||'').slice(0,10));
+        }
+      })
+      .catch(function(){});
+  }, 6000);
+}
+function showUpdateModal(ver, date){
+  /* 欢迎弹窗正开着时错峰再试（最多约 1 分钟），避免叠窗 */
+  if($('askMask').classList.contains('open')){
+    if(__updateTries++ < 12){ setTimeout(function(){ showUpdateModal(ver,date); }, 5000); }
+    return;
+  }
+  if($('updateMask').classList.contains('open')){ return; }
+  $('updateVerNew').textContent='v'+ver;
+  $('updateVerCur').textContent='v'+APP_VER;
+  $('updateDate').textContent=date? ('（'+date+' 发布）') : '';
+  openModal($('updateMask'));
+}
 
 /* --- 初始化 --- */
 function initUpdateFeatures(){
@@ -5465,32 +5702,26 @@ function initUpdateFeatures(){
   var bChk = $('aboutCheck');
   if(bChk) bChk.addEventListener('click', function(){ doCheckUpdate(false); });
 
-  /* 最近更新卡片 */
-  var x = $('wnClose');
-  if(x) x.addEventListener('click', hideWhatsNew);
-  var lg = $('wnLog');
-  if(lg) lg.addEventListener('click', function(){
-    hideWhatsNew();
-    /* 若从关于弹窗里点进来，先把底层弹窗关掉，避免两层遮罩叠着 */
-    var am = $('aboutMask');
-    if(am && am.classList.contains('open')) closeModal(am);
-    openModal($('changelogMask'));
-  });
-  var nv = $('wnNever');
-  if(nv) nv.addEventListener('click', function(){
-    hideWhatsNew();
-    toast('已关闭 v'+APP_VER+' 的更新提示');
-  });
-
-  initWhatsNew();
 }
 
 function initToolbar(){
-  var saved='0';
-  try{ saved=localStorage.getItem(TOOL_KEY) || '0'; }catch(e){}
-  setToolbarOpen(saved==='1');
-  $('toolToggle').addEventListener('click', function(){
-    setToolbarOpen($('topActions').hidden);
+  /* v2.11.0：每次打开都自动展开工具栏（不再记忆收起状态）。 */
+  setToolbarOpen(true);
+  var b=$('toolToggle');
+  var clickTimer=null;
+  /* 单击=展开 / 收起（260ms 防抖，避免与双击冲突）；
+     双击=隐藏按钮（仅本次会话，刷新或下次打开自动恢复）。 */
+  b.addEventListener('click', function(){
+    if(clickTimer){ return; }
+    clickTimer=setTimeout(function(){
+      clickTimer=null;
+      setToolbarOpen($('topActions').hidden);
+    }, 260);
+  });
+  b.addEventListener('dblclick', function(){
+    if(clickTimer){ clearTimeout(clickTimer); clickTimer=null; }
+    b.hidden=true;
+    toast('工具栏按钮已隐藏，下次打开时自动恢复');
   });
 }
 function initController(){
@@ -5682,9 +5913,15 @@ var modalCloseBtns=document.querySelectorAll('.modal-close');
 for(var mci=0;mci<modalCloseBtns.length;mci++){
   modalCloseBtns[mci].addEventListener('click',function(){ closeModal(this.closest('.modal-mask')); });
 }
-['askMask','helpMask','aboutMask','resetMask'].forEach(function(mid){
+['askMask','helpMask','aboutMask','resetMask','restoreMask','updateMask'].forEach(function(mid){
   $(mid).addEventListener('click',function(e){ if(e.target===this){ closeModal(this); } });
 });
+/* v2.11.0：会话恢复按钮 */
+$('restoreGo').addEventListener('click', doRestoreSession);
+$('restoreDrop').addEventListener('click', dropSession);
+/* v2.11.0：新版本提醒按钮 */
+$('updateGo').addEventListener('click', function(){ window.open(GH_REPO_PAGE,'_blank','noopener'); });
+$('updateLater').addEventListener('click', function(){ closeModal($('updateMask')); });
 /* ---------- 首次进入欢迎弹窗（含本次更新内容） ---------- */
 $('askStart').addEventListener('click',function(){
   closeModal($('askMask'));
@@ -5814,11 +6051,51 @@ document.addEventListener('keydown',function(e){
 }
 
 /* ===================== 弹窗 / 帮助 / 规则 / 关于 / 新手引导 ===================== */
-function openModal(mask){ if(!mask){ return; } mask.classList.add('open'); mask.setAttribute('aria-hidden','false'); }
+function openModal(mask){ if(!mask){ return; } mask.classList.add('open'); mask.setAttribute('aria-hidden','false'); ensureScrollHint(mask); }
 function closeModal(mask){
   if(!mask){ return; }
   mask.classList.remove('open'); mask.setAttribute('aria-hidden','true');
   if(mask===$('aboutMask') && pendingGuide){ pendingGuide=false; startGuide(); }
+}
+/* v2.10.0：移动端滚动提示。
+   弹窗与抽屉的长内容在手机上容易「看不出下方还有内容」（内容以按钮
+   结尾时尤甚）。给每个滚动区挂一个浮动小圆钮：可继续下滚时显示、
+   点击向下滚一屏、滚到底自动消失；仅窄屏显示（由 CSS 媒体查询限定）。*/
+function attachScrollHint(el){
+  if(!el || el.__shDone){ return; }
+  el.__shDone = true;
+  var hint = document.createElement('button');
+  hint.type = 'button';
+  hint.className = 'scroll-hint';
+  hint.setAttribute('aria-label', '下方还有内容');
+  hint.textContent = '↓';
+  var update = function(){
+    /* 内容被整体重建（如设置抽屉的手风琴重绘）时，把被冲掉的提示挂回末尾 */
+    if(!hint.isConnected){ el.appendChild(hint); }
+    var more = el.scrollHeight - el.clientHeight - el.scrollTop > 12;
+    hint.classList.toggle('show', more);
+  };
+  hint.addEventListener('click', function(){
+    el.scrollBy({ top: Math.max(160, Math.round(el.clientHeight * 0.8)), behavior: 'smooth' });
+  });
+  el.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  /* 内容动态变化（更新日志渲染、环节编辑器增删等）后自动重判 */
+  try{ new MutationObserver(update).observe(el, { childList: true, subtree: true }); }catch(e){}
+  el.appendChild(hint);
+  el.__shUpdate = update;
+  update();
+}
+function initScrollHints(){
+  var list = document.querySelectorAll('.modal-body, .drawer-body');
+  for(var i = 0; i < list.length; i++){ attachScrollHint(list[i]); }
+}
+/* 打开弹窗 / 抽屉时调用：确保提示已挂载（内容重建被冲掉时会自愈）并立即校准显隐 */
+function ensureScrollHint(container){
+  var el = container && container.querySelector('.modal-body, .drawer-body');
+  if(!el){ return; }
+  attachScrollHint(el);
+  if(el.__shUpdate){ el.__shUpdate(); }
 }
 
 /* ===================== 帮助文案（v2.3.0 按真实功能重写） =====================
@@ -5831,19 +6108,23 @@ var HELP_TEXT={
     '顶栏可切换环节；中间为当前段的倒计时表盘，下方为操作按钮。',
     '点「开始」开始计时：剩余时间到黄灯时点会响铃提醒，到点停表；「上一段 / 下一段」按正方反方顺序切换发言，±10 秒可微调剩余时间。',
     '环节与小环节可在「设置 → 环节管理」里自定义：可增删环节、调整顺序，每个小环节可选 1 个钟或 2 个钟，2 个钟走完自动交接。',
-    '右上角「帮助 / 关于 / 设置」为全局入口。'
+    '右上角「帮助 / 关于 / 设置」为全局入口。',
+    '计时进度会自动保存：刷新或关闭页面前会先确认，重新打开时可选择恢复上次未结束的计时（24 小时内有效）。',
+    '工具栏开关按钮：单击展开 / 收起面板，双击可隐藏按钮（下次打开自动恢复）；Esc 键可关闭弹窗与设置面板。'
   ],
   gb:[
     '这里是攻辩页，共两轮四次：正二提问、反二提问、正三提问、反三提问，按正→反→正→反进行；每次都是攻 / 辩双方两个钟，谁发言走谁的表。',
     '每次由提问方（攻）先发言，被提问方（辩）随后应对；两个钟的时长分别设置，点表盘或「切换发言方」交接，走表方高亮、另一方冻结。',
     '一方到点锁定后自动切换另一方继续，双方时间都走完本次结束；可随时点顶部标签切换到任意一次，不强制顺序。',
-    '±10 秒微调当前发言方，「重置本轮」清空当前一次。'
+    '±10 秒微调当前发言方，「重置本轮」清空当前一次。',
+    '计时进度会自动保存：刷新或关闭页面前会先确认，重新打开时可恢复上次未结束的计时。'
   ],
   free:[
     '这里是自由辩论页：双方各累计设定时长（默认各 5 分钟），从反方开始。',
     '点对方表盘即可切换发言方（走表方高亮、另一方冻结），也可用「切换发言方」按钮。',
     '某方到时锁定并自动由另一方继续，双方都到点本环节结束；「重置本环节」重新开始。',
-    '右上角「帮助 / 关于 / 设置」为全局入口。'
+    '右上角「帮助 / 关于 / 设置」为全局入口。',
+    '计时进度会自动保存：刷新或关闭页面前会先确认，重新打开时可恢复上次未结束的计时。'
   ],
   drawer:[
     '设置分七个分类，从左到右依次为：比赛信息、计时设置、外观显示、键盘快捷键、提示音、布局与投影、配置存档。',
@@ -5855,6 +6136,7 @@ var HELP_TEXT={
     '· 提示音：声音总开关，黄灯 / 红灯提示音各可设响铃次数（0–10，0 即该项不响）与响铃间隔（0.1–3.0 秒），铃声类型与音量在此选择；',
     '· 布局与投影：投影外观独立于主控（表盘样式、数字字形、数字格式、字号、颜色），布局预设横向 / 纵向 / 自由，自由模式下可拖动队名条、倒计时、发言者行、进度条；「显示内容」七个开关可逐项隐藏投影元素；',
     '· 配置存档：把调好的一套配置存成快照，可随时载入、重命名、删除，也能导出成文件或从文件导入（全程本地，不经过服务器）。',
+    '· 自动检查更新：联网时启动会查询 GitHub 最新版本，发现新版本会弹窗提示（可在下载页获取新文件）；离线时自动跳过。',
     '',
     '设置顶部可搜索关键词，也可点简称标签直接跳转；设置会记住你上次查看的分类。',
     '改完点「保存并应用」生效。「恢复默认设置」会弹出勾选列表，只重置你勾中的部分。'
@@ -6629,12 +6911,23 @@ if(PROJECTOR_MODE){
   requestAnimationFrame(frame);
   startHeartbeat(); // v2.9.6：节拍器驱动 tick + broadcast（后台不被冻结）
   broadcast();
+  /* v2.11.0：计时会话保护 ——
+     1) 未结束的会话（24 小时内）打开时弹窗询问是否恢复；
+     2) 计时进行中（含暂停）刷新 / 关闭页面时给出确认。 */
+  var _restored = initSessionRestore();
+  window.addEventListener('beforeunload', function(e){
+    if(sessionActive()){ e.preventDefault(); e.returnValue=''; }
+  });
+  /* v2.11.0：启动静默检查新版本——检测到即弹窗提醒（离线静默失败）。 */
+  autoCheckUpdate();
   /* 欢迎弹窗：首次打开、或版本更新后尚未查看时展示。
      看过当前版本（lastSeenVer === APP_VER）就不再打扰。*/
   var seenV='';
   try{ seenV=localStorage.getItem(CL_KEY_SEEN)||''; }catch(e){}
-  if(cmpVer(APP_VER, seenV) !== 0){ openWelcome(); }
+  if(!_restored && cmpVer(APP_VER, seenV) !== 0){ openWelcome(); }
 }
+/* v2.10.0：给弹窗与抽屉的滚动区挂「下方还有内容」提示（仅窄屏显示） */
+initScrollHints();
 })();
 </script>
 </body>
